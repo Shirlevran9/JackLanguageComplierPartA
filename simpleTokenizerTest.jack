@@ -1,0 +1,41 @@
+// Test 1: Simple if statement
+if (x > 0) {
+  let state = "negative";
+}
+
+// Test 2: Variable declaration and assignment
+let y = 42;
+
+// Test 3: Method call
+do Screen.drawRectangle(x, y, size, size);
+
+// Test 4: While loop
+while (i < 10) {
+  let i = i + 1;
+}
+
+// Test 5: Return statement
+return;
+
+// Test 6: String constant
+let message = "Hello, World!";
+
+// Test 7: Multiple symbols
+let z = x + y * (a - b);
+
+// Test 8: Keyword usage
+if (true) {
+  return;
+} else {
+  let result = false;
+}
+
+// Test 9: Identifier with underscore
+let my_variable = 100;
+
+// Test 10: Complex expression
+let sum = (a + b) * (c - d) / e;
+
+// Test case for unary operators
+let x = ^(y+3); // left-shifts the value (y+3), and assigns the result to x
+let x = #x;     // shifts x to the right, and assigns the result to x 
