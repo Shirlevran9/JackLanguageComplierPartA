@@ -30,4 +30,8 @@ The project includes test cases for:
 - Special symbols and operators
 - String constants
 - Comments
-- Unary operators (^ and #) 
+- Unary operators (^ and #)
+
+## About
+
+EX 10 in nand to tetris course, Jack compiler part A
