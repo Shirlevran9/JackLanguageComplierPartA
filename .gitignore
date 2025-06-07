@@ -2,9 +2,30 @@
 Square/
 ArrayTest/
 
+# Project specific
+CompilationEngine.py
+JackAnalyzer.py
+
+# Additional test directories and their contents
+Game2/
+Game3/
+ifDo/
+Test11/
+yannai/
+ExpressionLessSquare/
+
+# Reference files
+67925_2-סדנה במערכות חישוב מ-NAND ל-TETRIS_ Project 10 _ HUJI Learning Web sites 2024-2025.html
+ch10.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE
+.vscode/
+.idea/
+
 # Ignore AUTHORS file
 AUTHORS 
-
-# Add specified HTML and PDF files
-67925_2-סדנה במערכות חישוב מ-NAND ל-TETRIS_ Project 10 _ HUJI Learning Web sites 2024-2025.html
-ch10.pdf 

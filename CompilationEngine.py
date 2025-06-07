@@ -215,8 +215,11 @@ class CompilationEngine:
             self.tokenizer.advance()
             self._write_token()
             
-            # Check for more parameters
+            # Check for more parameters, and check for ',' sign
             self.tokenizer.advance()
+            if self.tokenizer.token_type() == "SYMBOL" and self.tokenizer.symbol() == ",":
+                self._write_token()
+                self.tokenizer.advance()
         
         self._write_non_terminal_end(PARAMETER_LIST_DEC)
         # Write the closing parenthesis

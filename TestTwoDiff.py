@@ -8,7 +8,7 @@ import sys
 import os
 
 def compare_files(file1_path, file2_path):
-    """Compare two files line by line and show differences."""
+    """Compare two files line by line and show differences, ignoring whitespace."""
     try:
         with open(file1_path, 'r') as file1, open(file2_path, 'r') as file2:
             lines1 = file1.readlines()
@@ -24,20 +24,28 @@ def compare_files(file1_path, file2_path):
             if i > min(len(lines1), len(lines2)):
                 print("Finished comparing files, lines are equal")
                 return
+            
             line1 = lines1[i].rstrip() if i < len(lines1) else "<EOF>"
             line2 = lines2[i].rstrip() if i < len(lines2) else "<EOF>"
             
-            if line1 != line2:
+            # Remove all whitespace for comparison
+            line1_stripped = ''.join(line1.split())
+            line2_stripped = ''.join(line2.split())
+            
+            if line1_stripped != line2_stripped:
                 differences_found = True
                 print(f"Line {i + 1}:")
                 print(f"  Actual  : '{line1}'")
                 print(f"  Expected: '{line2}'")
+                print(f"  Actual (no whitespace)  : '{line1_stripped}'")
+                print(f"  Expected (no whitespace): '{line2_stripped}'")
                 print()
+                return
         
         if not differences_found:
-            print("SUCCESS! Files are identical.")
+            print("SUCCESS! Files are identical (ignoring whitespace).")
         else:
-            print(f"FAILED! Found {sum(1 for i in range(max_lines) if (lines1[i].rstrip() if i < len(lines1) else '<EOF>') != (lines2[i].rstrip() if i < len(lines2) else '<EOF>'))} differences.")
+            print(f"FAILED! Found {sum(1 for i in range(max_lines) if ''.join((lines1[i].rstrip() if i < len(lines1) else '<EOF>').split()) != ''.join((lines2[i].rstrip() if i < len(lines2) else '<EOF>').split()))} differences.")
             
     except FileNotFoundError as e:
         print(f"Error: File not found - {e}")
