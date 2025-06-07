@@ -8,6 +8,7 @@ Unported [License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
 
 import typing
 from JackTokenizer import JackTokenizer
+from Constants import *
 
 
 class CompilationEngine:
@@ -64,6 +65,27 @@ class CompilationEngine:
 
     def compile_class(self) -> None:
         """Compiles a complete class."""
+        
+        self._write_class_begining()
+        
+        # class variable declarations
+        self.tokenizer.advance()
+        while self._is_class_var_dec():
+            self.compile_class_var_dec()
+            self.tokenizer.advance()  # Advance after the semicolon
+        
+        # subroutine declarations
+        while self._is_subroutine_dec():
+            self.compile_subroutine()
+            self.tokenizer.advance()  # Advance after the closing brace
+        
+        # Write the closing brace
+        self._write_token()
+        
+        self._write_non_terminal_end("class")
+    
+    def _write_class_begining(self) -> None:
+        """Writes the beginning of a class."""
         self._write_non_terminal_start("class")
         
         # 'class' keyword
@@ -77,26 +99,52 @@ class CompilationEngine:
         # '{'
         self.tokenizer.advance()
         self._write_token()
-        
-        # class variable declarations
-        self.tokenizer.advance()
-        while self.tokenizer.token_type() == "KEYWORD" and self.tokenizer.keyword() in ["static", "field"]:
-            self.compile_class_var_dec()
-            self.tokenizer.advance()  # Advance after the semicolon
-        
-        # subroutine declarations
-        while self.tokenizer.token_type() == "KEYWORD" and self.tokenizer.keyword() in ["constructor", "function", "method"]:
-            self.compile_subroutine()
-            self.tokenizer.advance()  # Advance after the closing brace
-        
-        # Write the closing brace
-        self._write_token()
-        
-        self._write_non_terminal_end("class")
+        return
 
+    # All _is_x functions are used to check if the current token is a certain type of declaration
+    def _is_class_var_dec(self) -> bool:
+        """Checks if the current token is a class variable declaration."""
+        return self.tokenizer.token_type() == "KEYWORD" and self.tokenizer.keyword() in ["static", "field"]
+    
+    def _is_subroutine_dec(self) -> bool:
+        """Checks if the current token is a subroutine declaration."""
+        return self.tokenizer.token_type() == "KEYWORD" and self.tokenizer.keyword() in ["constructor", "function", "method"]
+    
+    def _is_parameter_list(self) -> bool:
+        """Checks if the current token is a parameter list."""
+        if self.tokenizer.token_type() == "SYMBOL":
+            return self.tokenizer.symbol() != ")"
+        elif self.tokenizer.token_type() in ["KEYWORD", "IDENTIFIER"]:
+            return True
+        return False
+    
+    def _is_var_dec(self) -> bool:
+        """Checks if the current token is a variable declaration."""
+        return self.tokenizer.token_type() == "KEYWORD" and self.tokenizer.keyword() == "var"
+    
+    def _is_let_dec(self) -> bool:
+        """Checks if the current token is a let declaration."""
+        return self.tokenizer.token_type() == "KEYWORD" and self.tokenizer.keyword() == "let"
+    
+    def _is_if_dec(self) -> bool:
+        """Checks if the current token is an if declaration."""
+        return self.tokenizer.token_type() == "KEYWORD" and self.tokenizer.keyword() == "if"
+    
+    def _is_while_dec(self) -> bool:
+        """Checks if the current token is a while declaration."""
+        return self.tokenizer.token_type() == "KEYWORD" and self.tokenizer.keyword() == "while"
+    
+    def _is_subroutine_dec_part(self) -> bool:
+        """Checks if the current token is a valid part of a subroutine declaration."""
+        return self.tokenizer.symbol() != "}"
+        
+    def _is_statements_dec_part(self) -> bool:
+        """Checks if the current token is a valid part of a statements declaration."""
+        return self.tokenizer.token_type() == KEYWORD and self.tokenizer.keyword() in [LET, IF, WHILE, DO, RETURN]
+    
     def compile_class_var_dec(self) -> None:
         """Compiles a static or field declaration."""
-        self._write_non_terminal_start("classVarDec")
+        self._write_non_terminal_start(CLASS_VAR_DEC)
         
         # Write the static/field keyword
         self._write_token()
@@ -121,7 +169,7 @@ class CompilationEngine:
                     self.tokenizer.advance()
                     self._write_token()
         
-        self._write_non_terminal_end("classVarDec")
+        self._write_non_terminal_end(CLASS_VAR_DEC)
 
     def compile_subroutine(self) -> None:
         """Compiles a complete subroutine."""
@@ -139,7 +187,6 @@ class CompilationEngine:
         self._write_token()
         
         # Write the parameter list
-        self.tokenizer.advance()
         self.compile_parameter_list()
         
         # Write the subroutine body
@@ -148,60 +195,54 @@ class CompilationEngine:
         self._write_non_terminal_end("subroutineDec")
 
     def compile_parameter_list(self) -> None:
-        """Compiles a (possibly empty) parameter list."""
-        self._write_non_terminal_start("parameterList")
-        
-        # Write the opening parenthesis
+        """Compiles a (possibly empty) parameter list. 
+        Starts after the opening parenthesis (
+        """
+        # Write open parenthesis (
+        self.tokenizer.advance()
         self._write_token()
+        
+        # Write the parameter list
+        self._write_non_terminal_start(PARAMETER_LIST_DEC)
         
         # Write parameters if any
         self.tokenizer.advance()
-        if self.tokenizer.token_type() != "SYMBOL" or self.tokenizer.symbol() != ")":
-            while True:
-                # Write the type
-                self._write_token()
-                
-                # Write the parameter name
-                self.tokenizer.advance()
-                self._write_token()
-                
-                # Check for more parameters
-                self.tokenizer.advance()
-                if self.tokenizer.token_type() == "SYMBOL":
-                    if self.tokenizer.symbol() == ")":
-                        break
-                    elif self.tokenizer.symbol() == ",":
-                        self._write_token()
-                        self.tokenizer.advance()
+        while self._is_parameter_list():
+            # Write the type
+            self._write_token()
+            
+            # Write the parameter name
+            self.tokenizer.advance()
+            self._write_token()
+            
+            # Check for more parameters
+            self.tokenizer.advance()
         
+        self._write_non_terminal_end(PARAMETER_LIST_DEC)
         # Write the closing parenthesis
         self._write_token()
-        
-        self._write_non_terminal_end("parameterList")
 
     def compile_subroutine_body(self) -> None:
         """Compiles a subroutine's body."""
-        self._write_non_terminal_start("subroutineBody")
+        self._write_non_terminal_start(SUBROUTINE_BODY_DEC)
         
-        # Write the opening brace
+        # Write the opening brace {
         self.tokenizer.advance()
         self._write_token()
         
         # Write variable declarations
-        while self.tokenizer.has_more_tokens():
+        self.tokenizer.advance()
+        while self._is_var_dec():
+            self.compile_var_dec()
             self.tokenizer.advance()
-            if self.tokenizer.token_type() == "KEYWORD" and self.tokenizer.keyword() == "var":
-                self.compile_var_dec()
-            else:
-                break
         
         # Write statements
         self.compile_statements()
         
-        # Write the closing brace
+        # Write the closing brace }
         self._write_token()
         
-        self._write_non_terminal_end("subroutineBody")
+        self._write_non_terminal_end(SUBROUTINE_BODY_DEC)
 
     def compile_var_dec(self) -> None:
         """Compiles a var declaration."""
@@ -234,24 +275,24 @@ class CompilationEngine:
 
     def compile_statements(self) -> None:
         """Compiles a sequence of statements."""
-        self._write_non_terminal_start("statements")
+        self._write_non_terminal_start(STATEMENTS_DEC)
         
-        while self.tokenizer.token_type() == "KEYWORD":
+        while self._is_statements_dec_part():
             keyword = self.tokenizer.keyword()
-            if keyword == "let":
+            if keyword == LET:
                 self.compile_let()
-            elif keyword == "if":
+            elif keyword == IF:
                 self.compile_if()
-            elif keyword == "while":
+            elif keyword == WHILE:
                 self.compile_while()
-            elif keyword == "do":
+            elif keyword == DO:
                 self.compile_do()
-            elif keyword == "return":
+            elif keyword == RETURN:
                 self.compile_return()
             else:
                 break
         
-        self._write_non_terminal_end("statements")
+        self._write_non_terminal_end(STATEMENTS_DEC)
 
     def compile_let(self) -> None:
         """Compiles a let statement."""
@@ -346,7 +387,7 @@ class CompilationEngine:
 
     def compile_do(self) -> None:
         """Compiles a do statement."""
-        self._write_non_terminal_start("doStatement")
+        self._write_non_terminal_start(DO_STATEMENT_DEC)
         
         # Write the do keyword
         self._write_token()
@@ -359,7 +400,7 @@ class CompilationEngine:
         self._write_token()
         
         self.tokenizer.advance()
-        self._write_non_terminal_end("doStatement")
+        self._write_non_terminal_end(DO_STATEMENT_DEC)
 
     def compile_return(self) -> None:
         """Compiles a return statement."""
@@ -436,20 +477,16 @@ class CompilationEngine:
 
     def compile_subroutine_call(self) -> None:
         """Compiles a subroutine call."""
-        # Write the opening parenthesis or dot
-        self._write_token()
-        
-        # If it's a method call, write the method name
-        if self.tokenizer.symbol() == ".":
-            self.tokenizer.advance()
+               
+        # Write var, . or method name
+        while (self.tokenizer.token_type() == IDENTIFIER and self.tokenizer.symbol() != "(") or (self.tokenizer.token_type() == SYMBOL and self.tokenizer.symbol() == ".") :
             self._write_token()
+            self.tokenizer.advance()
         
-        # Write the opening parenthesis
-        self.tokenizer.advance()
+        # Reached the opening parenthesis - write "("
         self._write_token()
         
         # Write the expression list
-        self.tokenizer.advance()
         self.compile_expression_list()
         
         # Write the closing parenthesis
@@ -459,16 +496,18 @@ class CompilationEngine:
 
     def compile_expression_list(self) -> None:
         """Compiles a (possibly empty) comma-separated list of expressions."""
-        self._write_non_terminal_start("expressionList")
+        self._write_non_terminal_start(EXPRESION_LIST_DEC)
+        self.tokenizer.advance()
         
+        # Check if there are any expressions (not a closing parenthesis)
         if self.tokenizer.token_type() != "SYMBOL" or self.tokenizer.symbol() != ")":
-            while True:
+            # Compile the first expression
+            self.compile_expression()
+            
+            # Compile additional expressions separated by commas
+            while self.tokenizer.token_type() == "SYMBOL" and self.tokenizer.symbol() == ",":
+                self._write_token()  # Write the comma
+                self.tokenizer.advance()
                 self.compile_expression()
-                if self.tokenizer.token_type() == "SYMBOL":
-                    if self.tokenizer.symbol() == ")":
-                        break
-                    elif self.tokenizer.symbol() == ",":
-                        self._write_token()
-                        self.tokenizer.advance()
         
-        self._write_non_terminal_end("expressionList")
+        self._write_non_terminal_end(EXPRESION_LIST_DEC)

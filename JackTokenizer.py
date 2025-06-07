@@ -7,7 +7,7 @@ Unported [License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
 """
 import typing
 import re
-
+from Constants import *
 
 class JackTokenizer:
     """Removes all comments from the input stream and breaks it
@@ -93,24 +93,6 @@ class JackTokenizer:
     Note that ^, # correspond to shiftleft and shiftright, respectively.
     """
 
-    # Class constants for token types
-    KEYWORD = "KEYWORD"
-    SYMBOL = "SYMBOL"
-    IDENTIFIER = "IDENTIFIER"
-    INT_CONST = "INT_CONST"
-    STRING_CONST = "STRING_CONST"
-
-    # Keywords in Jack language
-    KEYWORDS = {
-        'class', 'constructor', 'function', 'method', 'field', 'static',
-        'var', 'int', 'char', 'boolean', 'void', 'true', 'false', 'null',
-        'this', 'let', 'do', 'if', 'else', 'while', 'return'
-    }
-
-    # Valid symbols in Jack language
-    SYMBOLS = {'{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', 
-               '&', '|', '<', '>', '=', '~', '^', '#'}
-
     def __init__(self, input_stream: typing.TextIO) -> None:
         """Opens the input stream and gets ready to tokenize it.
 
@@ -138,10 +120,10 @@ class JackTokenizer:
         tokens = []
         # Regular expressions for different token types
         patterns = [
-            (r'"[^"]*"', self.STRING_CONST),  # String constants
-            (r'\d+', self.INT_CONST),         # Integer constants
-            (r'[a-zA-Z_][a-zA-Z0-9_]*', self.IDENTIFIER),  # Identifiers
-            (r'[{}()[\].,;+\-*/&|<>=~^#]', self.SYMBOL)    # Symbols
+            (r'"[^"]*"', STRING_CONST),  # String constants
+            (r'\d+', INT_CONST),         # Integer constants
+            (r'[a-zA-Z_][a-zA-Z0-9_]*', IDENTIFIER),  # Identifiers
+            (r'[{}()[\].,;+\-*/&|<>=~^#]', SYMBOL)    # Symbols
         ]
         
         # Combine all patterns
@@ -162,8 +144,8 @@ class JackTokenizer:
                     break
             
             # Handle keywords
-            if token_type == self.IDENTIFIER and token.lower() in self.KEYWORDS:
-                token_type = self.KEYWORD
+            if token_type == IDENTIFIER and token.lower() in KEYWORDS:
+                token_type = KEYWORD
                 
             tokens.append((token, token_type))
             
@@ -253,9 +235,9 @@ class JackTokenizer:
     def get_token_representation(self) -> str:
         """Get a string representation of the current token."""
         token_type = self.token_type()
-        if token_type == "KEYWORD":
+        if token_type == KEYWORD:
             return f"<keyword> {self.keyword()} </keyword>"
-        elif token_type == "SYMBOL":
+        elif token_type == SYMBOL:
             symbol = self.symbol()
             # Handle special XML characters
             if symbol == "<":
@@ -270,10 +252,10 @@ class JackTokenizer:
             elif symbol == "#":
                 symbol = "#"
             return f"<symbol> {symbol} </symbol>"
-        elif token_type == "IDENTIFIER":
+        elif token_type == IDENTIFIER:
             return f"<identifier> {self.identifier()} </identifier>"
-        elif token_type == "INT_CONST":
+        elif token_type == INT_CONST:
             return f"<integerConstant> {self.int_val()} </integerConstant>"
-        elif token_type == "STRING_CONST":
+        elif token_type == STRING_CONST:
             return f"<stringConstant> {self.string_val()} </stringConstant>"
         return ""
