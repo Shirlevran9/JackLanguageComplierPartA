@@ -56,7 +56,7 @@ class JackAnalyzer:
         self._get_jack_files()
         
         for jack_file in self.jack_files:
-            xml_file = jack_file.replace('.jack', 'Test.xml')
+            xml_file = jack_file.replace('.jack', '.xml')
             
             try:
                 with open(jack_file, 'r') as input_file, open(xml_file, 'w') as output_file:
